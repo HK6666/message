@@ -48,6 +48,13 @@ dependencies {
     //实际开发中，请直接通过jar包依赖，在本demo中，直接工程依赖的sdk源码
     compile project(":sdk")
 
+    //爬虫
+    // jsoup HTML parser library @ https://jsoup.org/
+    implementation 'org.jsoup:jsoup:1.14.3'
+
+
+
+
 }
 
 jar {

@@ -24,11 +24,18 @@ public class ArticleVo {
 	
 	public String getValue(){
 		StringBuilder s = new StringBuilder();
-		s.append("商品标题: "+this.articleTitle+" ");
-		s.append("<span style='color:red;'>商品价格: "+this.articlePrice+"</span> ");
-		s.append("商城: "+this.articleMall+" ");
-		s.append("商品链接: "+this.articleLink+" ");
-		s.append("文章地址: "+this.articleUrl+" ");
+		s.append("商品标题: "+this.articleTitle+" <br />");
+		s.append("<span style='color:red;'>商品价格: "+this.articlePrice+"</span> <br />");
+		s.append("所属平台: "+this.articleMall+" <br />");
+		s.append("<a href=\""+this.articleLink+"\"\"> 商品链接:  </a>"+this.articleLink+ "<br />");
+		s.append("<a href=\""+this.articleUrl+"\"\"> 文章地址:  </a>"+this.articleUrl+ "<br />");
+		return s.toString();
+	}
+	
+	public String getNormalValue(){
+		StringBuilder s = new StringBuilder();
+		s.append("商品标题: "+this.articleTitle+" <br />");
+		s.append("<span style='color:red;'>商品价格: "+this.articlePrice+"</span> <br />");
 		return s.toString();
 	}
 }

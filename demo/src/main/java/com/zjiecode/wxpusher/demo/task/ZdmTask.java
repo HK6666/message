@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -24,15 +25,17 @@ import java.util.*;
  */
 @EnableScheduling
 @Component
-public class zdmTask {
+public class ZdmTask {
 	
 	@Value("${wxpusher.biz.apptoken}")
 	private String appToken;
 	
+	
 	private String uid = "UID_Se2FFn9o8QwuvvztdK2eA2HnkYtZ";
 	
-	@Scheduled(cron = "0 0/1 * * * ?")
-	public void getResult(){
+	@Scheduled(cron = "0/10 * * * * ?")
+	public void getResult() throws IOException {
+		JsoupTest jsoupTest = new JsoupTest();
 		//获取信息
 		String result  = getRequest();
 		List<ArticleVo> articleVos = new ArrayList<>();
@@ -46,7 +49,9 @@ public class zdmTask {
 		
 		//发送信息
 		if (!articleVos.isEmpty()){
-			 message =  sendWechat(articleVos);
+			
+			//三小时最火信息 数码类历史低价
+			message =  sendWechat(articleVos, jsoupTest.getDigitalHtml());
 		}
 		
 		System.out.println("message: " + message);
@@ -54,19 +59,19 @@ public class zdmTask {
 	
 	
 	//发送微信提醒
-	public Result<List<MessageResult>> sendWechat(List<ArticleVo> articleVos){
+	public Result<List<MessageResult>> sendWechat(List<ArticleVo> articleVos,  List<ArticleVo> digitalVos){
 		Message message = new Message();
 		message.setContentType(Message.CONTENT_TYPE_HTML);
 		message.setUid(uid);
 		message.setAppToken(appToken);
-		message.setContent(getHtml(articleVos));
+		message.setContent(getHtml(articleVos, digitalVos));
 		return WxPusher.send(message);
 	}
 	
-	//生成html
-	public String getHtml(List<ArticleVo> articleVos){
-		
-		StringBuilder sb = new StringBuilder("<br /><span style='color:red;'>hk的三小时内全网商品低价监控：</span><br />状态：<span style='color:green;'>成功</span>\"\n" +
+	//生成3小时最热的商品html
+	public String getHtml(List<ArticleVo> articleVos, List<ArticleVo> digitalVos){
+		StringBuilder sb = new StringBuilder("" +
+				"<br /><span style='color:red;'>hk的三小时内全网商品低价监控：</span><br />状态：<span style='color:green;'>成功</span>\"\n" +
 				"<br /><br /><br />");
 		
 		articleVos.forEach(articleVo -> {
@@ -75,6 +80,14 @@ public class zdmTask {
 			sb.append("</span> <br /><br /><br />");
 		});
 		
+		sb.append("<br /><span style='color:red;'>数码好物精选：</span><br />状态：<span style='color:green;'>成功</span>\"\n" +
+				"<br /><br /><br />");
+		
+		digitalVos.forEach(digitalVo -> {
+			sb.append("<span style='color:green;'>");
+			sb.append(digitalVo.getNormalValue());
+			sb.append("</span> <br /><br /><br />");
+		});
 		
 		return sb.toString();
 	}
@@ -83,12 +96,13 @@ public class zdmTask {
 	public String getRequest(){
 		//获取三小时的时间长
 		Date date = new Date();
-		Long time = date.getTime()/1000 - 10800;
+		Long time = date.getTime()/1000;
 		
 		String result = "";
 		BufferedReader in = null;
 		try {
 			String urlNameString = "https://faxian.smzdm.com/json_more?filter=h1s0t104979f0c0&type=a&timesort="+time.toString();
+			System.out.println("请求查询三小时最热接口: "+urlNameString);
 			URL realUrl = new URL(urlNameString);
 			// 打开和URL之间的连接
 			URLConnection connection = realUrl.openConnection();
